@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Planner{% endblock %}
+{% block content %}
+<header class="top"><h1>Planner</h1></header>
+
+<div class="card">
+  <h3>{{ 'Edit event' if edit else 'Schedule an event' }}</h3>
+  <form method="post" class="row" action="{{ url_for('event_update', eid=edit.id) if edit else url_for('event_add') }}">
+    <input name="title" placeholder="Event title" value="{{ edit.title if edit }}" required>
+    <input type="date" name="day" value="{{ edit.day if edit else today_iso }}" required>
+    <input type="time" name="start_time" value="{{ edit.start_time if edit else '09:00' }}">
+    <input type="time" name="end_time" value="{{ edit.end_time if edit else '10:00' }}">
+    <select name="category">{% for c in categories %}<option {{ 'selected' if edit and edit.category == c }}>{{ c }}</option>{% endfor %}</select>
+    <input name="note" placeholder="Note (optional)" value="{{ edit.note if edit }}">
+    <button class="btn pri">{{ 'Save' if edit else 'Schedule' }}</button>
+    {% if edit %}<a class="btn" href="{{ url_for('planner') }}">Cancel</a>{% endif %}
+  </form>
+</div>
+
+{% macro rows(list) %}
+  {% for e in list %}
+  <div class="item">
+    <div class="grow">
+      <b>{{ e.day }}</b> {{ e.start_time }}–{{ e.end_time }} · {{ e.title }}
+      <span class="tag c-{{ e.category|lower }}">{{ e.category }}</span>
+      {% if e.note %}<span class="muted">{{ e.note }}</span>{% endif %}
+    </div>
+    <a class="btn" href="{{ url_for('planner', edit=e.id) }}">Edit</a>
+    <form method="post" action="{{ url_for('event_delete', eid=e.id) }}"><button class="btn">Delete</button></form>
+  </div>
+  {% endfor %}
+{% endmacro %}
+
+<div class="card"><h3>Upcoming</h3>{{ rows(upcoming) }}{% if not upcoming %}<p class="muted">Nothing scheduled.</p>{% endif %}</div>
+{% if past %}<div class="card"><h3>Recent</h3>{{ rows(past) }}</div>{% endif %}
+{% endblock %}

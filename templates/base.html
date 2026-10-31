@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Daybook{% endblock %} · Daybook</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<aside class="side">
+  <div class="brand">Daybook</div>
+  <nav>
+    <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint == 'index' }}">Calendar</a>
+    <a href="{{ url_for('tasks') }}" class="{{ 'on' if request.endpoint == 'tasks' }}">My Tasks</a>
+    <a href="{{ url_for('planner') }}" class="{{ 'on' if request.endpoint == 'planner' }}">Planner</a>
+  </nav>
+  <h4>Categories</h4>
+  <nav>
+    {% for c in categories %}
+    <a href="{{ url_for('tasks', category=c) }}"><i class="dot c-{{ c|lower }}"></i>{{ c }}</a>
+    {% endfor %}
+  </nav>
+  <div class="ver">v{{ version }}</div>
+</aside>
+<main>{% block content %}{% endblock %}</main>
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+</body>
+</html>

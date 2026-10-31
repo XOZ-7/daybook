@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Calendar{% endblock %}
+{% block content %}
+<header class="top">
+  <div>
+    <h1>{{ days[0].date.strftime('%b %d') }} – {{ days[6].date.strftime('%b %d, %Y') }}</h1>
+    <p class="muted">{{ today.strftime('%A, %d %B') }} · <span id="clock"></span></p>
+  </div>
+  <div class="wk">
+    <a class="btn" href="{{ url_for('index', w=w-1) }}">←</a>
+    <a class="btn" href="{{ url_for('index') }}">Today</a>
+    <a class="btn" href="{{ url_for('index', w=w+1) }}">→</a>
+  </div>
+</header>
+
+<section class="week">
+  {% for d in days %}
+  <div class="day {{ 'today' if d.iso == today_iso }}" data-date="{{ d.iso }}">
+    <div class="dh"><span>{{ d.date.strftime('%a') }}</span><b>{{ d.date.day }}</b></div>
+    {% for e in d.events %}
+    <a class="chip c-{{ e.category|lower }}" href="{{ url_for('planner', edit=e.id) }}">{{ e.start_time }} {{ e.title }}</a>
+    {% endfor %}
+    {% for t in d.tasks %}
+    <a class="chip task" href="{{ url_for('tasks', edit=t.id) }}">☐ {{ t.title }}</a>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="grid">
+  <div class="card">
+    <h3>Today's agenda</h3>
+    {% for e in agenda %}<p><b>{{ e.start_time }}–{{ e.end_time }}</b> {{ e.title }}</p>{% endfor %}
+    {% for t in due_today %}<p>☐ {{ t.title }} <span class="muted">({{ t.priority }})</span></p>{% endfor %}
+    {% if not agenda and not due_today %}<p class="muted">Nothing scheduled today.</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Upcoming</h3>
+    {% for e in upcoming %}<p><b>{{ e.day }}</b> {{ e.start_time }} {{ e.title }}</p>
+    {% else %}<p class="muted">No upcoming events.</p>{% endfor %}
+  </div>
+  <div class="card">
+    <h3>Task summary</h3>
+    <div class="stats">
+      <div><b>{{ stats.open }}</b><span>Open</span></div>
+      <div><b>{{ stats.done }}</b><span>Done</span></div>
+      <div><b>{{ stats.overdue }}</b><span>Overdue</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Quick add</h3>
+    <form method="post" action="{{ url_for('task_add') }}" class="row">
+      <input type="hidden" name="next" value="/">
+      <input name="title" placeholder="New task" required>
+      <input type="date" name="due">
+      <button class="btn pri">Add task</button>
+    </form>
+    <form method="post" action="{{ url_for('event_add') }}" class="row">
+      <input type="hidden" name="next" value="/">
+      <input name="title" placeholder="New event" required>
+      <input type="date" name="day" id="qa-date" value="{{ today_iso }}">
+      <input type="time" name="start_time" value="09:00">
+      <button class="btn pri">Add event</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

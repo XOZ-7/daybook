@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}My Tasks{% endblock %}
+{% block content %}
+<header class="top"><h1>My Tasks</h1></header>
+
+<div class="card">
+  <h3>{{ 'Edit task' if edit else 'New task' }}</h3>
+  <form method="post" class="row" action="{{ url_for('task_update', tid=edit.id) if edit else url_for('task_add') }}">
+    <input name="title" placeholder="What needs doing?" value="{{ edit.title if edit }}" required>
+    <select name="category">{% for c in categories %}<option {{ 'selected' if edit and edit.category == c }}>{{ c }}</option>{% endfor %}</select>
+    <select name="priority">{% for p in priorities %}<option {{ 'selected' if (edit and edit.priority == p) or (not edit and p == 'Medium') }}>{{ p }}</option>{% endfor %}</select>
+    <input type="date" name="due" value="{{ edit.due if edit and edit.due }}">
+    <button class="btn pri">{{ 'Save' if edit else 'Add' }}</button>
+    {% if edit %}<a class="btn" href="{{ url_for('tasks') }}">Cancel</a>{% endif %}
+  </form>
+</div>
+
+<div class="filters">
+  {% for s in ['all', 'open', 'done'] %}
+  <a class="btn {{ 'on' if status == s }}" href="{{ url_for('tasks', status=s, category=cat) }}">{{ s|capitalize }}</a>
+  {% endfor %}
+  <span class="muted">Category:</span>
+  <a class="btn {{ 'on' if not cat }}" href="{{ url_for('tasks', status=status) }}">Any</a>
+  {% for c in categories %}
+  <a class="btn {{ 'on' if cat == c }}" href="{{ url_for('tasks', status=status, category=c) }}">{{ c }}</a>
+  {% endfor %}
+</div>
+
+<div class="card">
+  {% for t in items %}
+  <div class="item {{ 'done' if t.done }}">
+    <form method="post" action="{{ url_for('task_toggle', tid=t.id) }}">
+      <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+      <button class="chk" title="Toggle">{{ '✓' if t.done else '' }}</button>
+    </form>
+    <div class="grow">
+      <b>{{ t.title }}</b>
+      <span class="tag c-{{ t.category|lower }}">{{ t.category }}</span>
+      <span class="tag p-{{ t.priority|lower }}">{{ t.priority }}</span>
+      {% if t.due %}<span class="muted">due {{ t.due }}</span>{% endif %}
+    </div>
+    <a class="btn" href="{{ url_for('tasks', edit=t.id) }}">Edit</a>
+    <form method="post" action="{{ url_for('task_delete', tid=t.id) }}"><button class="btn">Delete</button></form>
+  </div>
+  {% else %}
+  <p class="muted">No tasks match. Add one above.</p>
+  {% endfor %}
+</div>
+{% endblock %}
