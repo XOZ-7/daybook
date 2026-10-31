@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daybook
+  labels:
+    app: daybook
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate          # SQLite + one volume: old pod stops before the new one starts
+  selector:
+    matchLabels:
+      app: daybook
+  template:
+    metadata:
+      labels:
+        app: daybook
+    spec:
+      securityContext:
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: daybook
+          image: kaching437/daybook:1.0
+          ports:
+            - containerPort: 5000
+          readinessProbe:
+            httpGet: { path: /health, port: 5000 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 5000 }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 300m, memory: 256Mi }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: daybook-data
